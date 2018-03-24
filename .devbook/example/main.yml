@@ -1,0 +1,30 @@
+---
+- hosts: all
+  connection: local
+
+  # VARS
+  vars_files:
+    - default.config.yml
+  pre_tasks:
+    - include_vars: "{{ item }}"
+      with_fileglob:
+        - config.yml
+        - ../config.yml
+      tags: ['always']
+    - name: "Var Dump"
+      debug:
+        var: "{{ var_name }}"
+      tags: ['get-var']
+      when: var_name is defined
+
+  # ROLES
+  roles: []
+  # @TODO: place roles
+    #- { role: 'roles/luciditi.tags', devbook_tag: 'tag', tags: ['tag'] }
+
+  # TASKS
+  tasks: []
+  # @TODO: place tasks
+    #- name: Marking Devbook Progress
+    #  shell: echo 'tag' >> .devbook.tags
+    #  tags: ['tag']
