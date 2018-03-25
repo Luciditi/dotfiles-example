@@ -75,6 +75,7 @@ C_SUC="\033[32m"
 C_ERR="\033[31m"
 C_RES="\033[0m"
 
+ANSIBLE_SUDO="-K"
 DEVBOOK_NOTES="NOTES.md"
 DEVBOOK_TAG_FILE=".devbook.tags"
 DEVBOOK_SKIP_FILE=".devbook.skip"
@@ -96,6 +97,20 @@ expr "$*" : ".*--help" > /dev/null && usage
 # MAIN
 ############################################################################
 
+# Handle options
+# Add options x: - required arg
+while getopts 'fh' FLAG; do
+  case "${FLAG}" in
+    h) usage; exit 1 ;;
+    f)
+      ANSIBLE_SUDO=""
+      DEVBOOK_EXT_OPTS="-f"
+      shift $((OPTIND -1))
+      ;;
+    *) : ;;
+  esac
+done
+
 # Add Ansible requirements...
 if [[ -f "requirements.yml" ]]; then
   echo ""
@@ -109,7 +124,7 @@ if [[ -f "main.yml" ]]; then
   echo ""
   echo "${C_HIL}Installing Luciditi config...${C_RES}"
   TAGS=$(devbook_tags)
-  ansible-playbook main.yml -i inventory -K --skip-tags "$TAGS"
+  ansible-playbook main.yml -i inventory $ANSIBLE_SUDO --skip-tags "$TAGS"
 fi
 
 
