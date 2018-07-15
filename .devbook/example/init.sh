@@ -2,7 +2,10 @@
 
 # Set stop on error / enable debug
 set -euo pipefail
-#set -vx
+DEVBOOK_VERBOSE="${DEVBOOK_VERBOSE:-}"
+if [[ "$DEVBOOK_VERBOSE" == "1" ]]; then
+  set -o verbose
+fi
 
 ############################################################################
 # INSTALL LUCIDITI CONFIG
@@ -51,8 +54,18 @@ ansible_var() {
   fi
 }
 
+# Retrieve optional --tags param
+devbook_do_tags() {
+  if [[ -f "$DEVBOOK_LIST_FILE" ]]; then
+    TAGS=$(paste -sd "," - < "$DEVBOOK_LIST_FILE")
+    echo "--tags $TAGS"
+  else
+    echo ""
+  fi
+}
+
 # Retrieve the list of skipped and/or finished tags.
-devbook_tags() {
+devbook_skip_tags() {
   if [[ -f "$DEVBOOK_TAG_FILE" && ! -f "$DEVBOOK_SKIP_FILE" ]]; then
     sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/,/g' "$DEVBOOK_TAG_FILE"
   elif [[ ! -f "$DEVBOOK_TAG_FILE" && -f "$DEVBOOK_SKIP_FILE" ]]; then
@@ -62,6 +75,15 @@ devbook_tags() {
     cat "$DEVBOOK_TAG_FILE" "$DEVBOOK_SKIP_FILE" > "$MERGE"
     sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/,/g' "$MERGE"
     rm "$MERGE"
+  fi
+}
+
+# Get verbosity
+devbook_verbosity() {
+  if [[ "$DEVBOOK_VERBOSE" == "1" ]]; then
+    echo "-vvv"
+  else
+    echo ""
   fi
 }
 
@@ -77,6 +99,7 @@ C_RES="\033[0m"
 
 ANSIBLE_SUDO="-K"
 DEVBOOK_NOTES="NOTES.md"
+DEVBOOK_LIST_FILE=".devbook.list"
 DEVBOOK_TAG_FILE=".devbook.tags"
 DEVBOOK_SKIP_FILE=".devbook.skip"
 SCRIPTS_DIRECTORY="$(dirname $0)"
@@ -115,7 +138,7 @@ done
 if [[ -f "requirements.yml" ]]; then
   echo ""
   echo "${C_HIL}Installing Luciditi Requirements...${C_RES}"
-  ansible-galaxy install -r requirements.yml
+  ansible-galaxy install $VERBOSE_OPT -r requirements.yml
 fi
 
 
@@ -123,8 +146,9 @@ fi
 if [[ -f "main.yml" ]]; then
   echo ""
   echo "${C_HIL}Installing Luciditi config...${C_RES}"
-  TAGS=$(devbook_tags)
-  ansible-playbook main.yml -i inventory $ANSIBLE_SUDO --skip-tags "$TAGS"
+  SKIP_TAGS=$(devbook_skip_tags)
+  LIST_TAGS=$(devbook_do_tags)
+  ansible-playbook main.yml $VERBOSE_OPT -i inventory $ANSIBLE_SUDO --skip-tags "$SKIP_TAGS" $LIST_TAGS
 fi
 
 
