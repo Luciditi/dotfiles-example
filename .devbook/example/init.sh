@@ -146,8 +146,9 @@ fi
 if [[ -f "main.yml" ]]; then
   echo ""
   echo "${C_HIL}Installing config...${C_RES}"
-  TAGS=$(devbook_tags)
-  ansible-playbook main.yml -i inventory $ANSIBLE_SUDO --skip-tags "$TAGS"
+  SKIP_TAGS=$(devbook_skip_tags)
+  LIST_TAGS=$(devbook_do_tags)
+  ansible-playbook main.yml $VERBOSE_OPT -i inventory $ANSIBLE_SUDO --skip-tags "$SKIP_TAGS" $LIST_TAGS
 fi
 
 

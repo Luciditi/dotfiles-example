@@ -1,3 +1,9 @@
 ---
 
 # @TODO: place config var defaults
+
+# Glob pattern to ansible task files to run before all other tasks are finished.
+pre_provision_tasks: pre_tasks/*.yml
+
+# Glob pattern to ansible task files to run after all other tasks are finished.
+post_provision_tasks: post_tasks/*.yml
