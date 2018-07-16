@@ -133,6 +133,7 @@ while getopts 'fh' FLAG; do
     *) : ;;
   esac
 done
+VERBOSE_OPT=$(devbook_verbosity)
 
 # Add Ansible requirements...
 if [[ -f "requirements.yml" ]]; then
